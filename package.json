@@ -33,11 +33,12 @@
     "eslint-plugin-import": "^1.8.0",
     "eslint-plugin-jsx-a11y": "^1.2.2",
     "eslint-plugin-react": "^5.1.1",
-    "mocha": "^2.4.5"
+    "mocha": "^3.1.2"
   },
   "dependencies": {
     "babel-polyfill": "^6.9.1",
     "lodash": "^4.16.4",
+    "node-uuid": "^1.4.7",
     "rxjs": "^5.0.0-rc.1",
     "ws": "^1.1.1"
   }
