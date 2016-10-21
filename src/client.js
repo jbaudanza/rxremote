@@ -1,7 +1,7 @@
 import Rx from 'rxjs';
 import uuid from 'node-uuid';
 
-require('./batches');
+import './batches';
 
 const sessionId = uuid.v4();
 

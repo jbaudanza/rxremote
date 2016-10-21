@@ -2,7 +2,7 @@ import {Server as WebSocketServer} from 'ws';
 import Rx from 'rxjs';
 import _ from 'lodash';
 
-require('./batches');
+import './batches';
 
 function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {
   const remoteAddr = (
@@ -116,6 +116,11 @@ function onWebSocketConnection(socket, observables, connectionId, logSubject, ev
           const observable = fn(message.offset, socket, sessionId);
           if (observable && typeof observable.subscribe === 'function') {
             if (typeof observable.subscribe === 'function') {
+              // TODO: If this is an ArrayObservable, just send the array
+              // as one batch.
+              //if (typeof Array.isArray(observable.array)) {
+              //}
+
               const subscription = observable
                 .batches()
                 .subscribe(createObserver(message.subscriptionId));

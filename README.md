@@ -15,7 +15,7 @@ server:
 
 ```js
 import http from 'http';
-import Server as ObservablesServer from 'rxremote/server';
+import ObservablesServer from 'rxremote/server';
 
 const httpServer = http.createServer();
 httpServer.listen(5000);
@@ -30,6 +30,8 @@ const observablesServer = new ObservablesServer(httpServer, {
 client:
 
 ```js
+import ObservablesClient from 'rxremote/client';
+
 const client = new ObservablesClient('ws://localhost:5000');
 const source = client.observable('counter')
 
@@ -96,3 +98,43 @@ const subscription = source.subscribe(
 // => Next: 6
 
 ```
+
+Batching results
+----------------
+
+
+
+Server API
+----------
+
+### `.logs`
+
+### `.events`
+
+### `.wss`
+
+Client API
+----------
+
+### `.observable(name)`
+
+Returns an observable that will marshall subscriptions to the remote server.
+
+### `.reconnect()`
+
+If the client in a disconnected state, this will attempt to reconnect. This
+does nothing if the client already in a connected or connecting state.
+
+### `.connected`
+
+This is an observable that emits a `true` boolean value when the client is
+connected and a `false` boolean value when the client is disconnected.
+
+### `.reconnectingAt`
+
+If this client is in a disconnected state, this observable will emit a timestamp
+that represents when the client will try to make a new connection.
+
+### `.sessionId`
+
+TODO: Write me
