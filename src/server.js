@@ -2,7 +2,7 @@ import {Server as WebSocketServer} from 'ws';
 import Rx from 'rxjs';
 import _ from 'lodash';
 
-import './batches';
+import {rewrapBatches} from './batches';
 
 function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {
   const remoteAddr = (
@@ -121,8 +121,7 @@ function onWebSocketConnection(socket, observables, connectionId, logSubject, ev
               //if (typeof Array.isArray(observable.array)) {
               //}
 
-              const subscription = observable
-                .batches()
+              const subscription = rewrapBatches(observable)
                 .subscribe(createObserver(message.subscriptionId));
 
               subscription.name = message.name;

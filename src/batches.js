@@ -1,6 +1,7 @@
 import Rx from 'rxjs';
 
-Rx.Observable.createFromBatches = function(batched) {
+
+export function unwrapBatches(batched) {
   const obs = batched.flatMap((x) => Rx.Observable.from(x));
 
   batched = batched.filter((l) => l.length > 0);
@@ -8,23 +9,31 @@ Rx.Observable.createFromBatches = function(batched) {
   // Override the prototype version
   batched.batches = obs.batches = function() { return batched; };
 
+  // Add an version of skip that will keep the batched intact.
+  obs.skip = batchSkip;
+
   return obs;
 }
 
-Rx.Observable.prototype.batches = function() {
-  return this.map(x => [x]);
+export function rewrapBatches(observable) {
+  if (typeof observable.batches === 'function') {
+    return observable.batches();
+  } else {
+    return observable.map(x => [x]);
+  }
+}
+
+export function batchScan(fn, initial) {
+  return rewrapBatches(this).scan((state, batch) => batch.reduce(fn, state), initial);
 };
 
-Rx.Observable.prototype.batchScan = function(fn, initial) {
-  return this.batches().scan((state, batch) => batch.reduce(fn, state), initial);
-};
-
-Rx.Observable.prototype.batchSkip = function(count) {
+function batchSkip(count) {
   if (count === 0)
     return this;
 
-  const batches = this.batches();
-  return Rx.Observable.create(function(observer) {
+  const batches = rewrapBatches(this);
+
+  const filteredBatches = Rx.Observable.create(function(observer) {
     let leftToSkip=count;
 
     const sub = batches
@@ -45,4 +54,6 @@ Rx.Observable.prototype.batchSkip = function(count) {
         .subscribe(observer);
     return sub.unsubscribe.bind(sub);
   });
+
+  return unwrapBatches(filteredBatches);
 }

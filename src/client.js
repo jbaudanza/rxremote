@@ -1,7 +1,7 @@
 import Rx from 'rxjs';
 import uuid from 'node-uuid';
 
-import './batches';
+import {unwrapBatches} from  './batches';
 
 const sessionId = uuid.v4();
 
@@ -198,7 +198,7 @@ export default class Client {
       }
     });
 
-    return Rx.Observable.createFromBatches(batches);
+    return unwrapBatches(batches);
   }
 
 }
