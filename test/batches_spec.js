@@ -20,7 +20,7 @@ describe("batches.unwrapBatches", () => {
         });
   });
 
-  it('should retrain the original batched observable', () => {
+  it('should retain the original batched observable', () => {
     const batched = Rx.Observable.of([1,2,3], [4,5,6])
     const unbatched = batches.unwrapBatches(batched);
 
