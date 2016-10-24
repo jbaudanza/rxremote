@@ -1,6 +1,5 @@
 import {Server as WebSocketServer} from 'ws';
 import Rx from 'rxjs';
-import _ from 'lodash';
 
 import {rewrapBatches} from './batches';
 
@@ -58,9 +57,12 @@ function onWebSocketConnection(socket, observables, connectionId, logSubject, ev
   function cleanup() {
     log("Closing WebSocket");
 
-    _.values(subscriptions).forEach(function(sub) {
-      sub.unsubscribe();
-    })
+    for (let key in subscriptions) {
+      if (subscriptions.hasOwnProperty(key)) {
+        subscriptions[key].unsubscribe();
+      }
+    }
+
     subscriptions = {};
 
     insertEvent({type: 'connection-closed'});
