@@ -1,5 +1,6 @@
 node_modules
 logs
+lib
 *.log
 npm-debug.log*
 coverage
