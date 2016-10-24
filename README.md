@@ -4,12 +4,15 @@ RXRemote
 RXRemote is a module that allows a client to subscribe to RxJs Observables on a
 remote server. Clients can be either node or browser instances.
 
-On disconnect, RXRemote will attempt to reconnect and restart observables where it left off.
+On disconnect, RXRemote will attempt to reconnect and restart observables where they left off.
 
-An optional API is included for sending observable events in batches for efficiency.
+## Installing with [NPM](https://www.npmjs.com/)
 
-Simple example
---------------
+```bash`
+$ npm install rxremote
+```
+
+## Simple example
 
 server:
 
@@ -53,8 +56,7 @@ const subscription = source.subscribe(
 
 ```
 
-Continuing a subscription after reconnection
---------------------------------------------
+## Continuing a subscription after reconnection
 
 server:
 ```js
@@ -71,7 +73,7 @@ const observablesServer = new ObservablesServer(httpServer, {
 });
 ```
 
-
+client:
 ```js
 const client = new ObservablesClient('ws://localhost:5000');
 const source = client.observable('counter')
@@ -99,22 +101,35 @@ const subscription = source.subscribe(
 
 ```
 
-Batching results
-----------------
+## Batching results
 
+COMING SOON: RxRemote contains an internal API for batching results together for efficiency. If there is interest, I
+will polish this up and publish this.
 
-
-Server API
-----------
+## Server API
 
 ### `.logs`
 
+This observable emits text strings suitable for sending to a log file
+
 ### `.events`
+
+This observable emits an event object when a connection is open or closed. The objects look like:
+
+```
+  {
+    type:         'string',          // 'connection-closed' or 'connection-open',
+    connectionId: 'number',          // a numberic value that is unique to this connection
+    sessionId:    'string',          // a uuid that is generated on the client and reused to call connections
+    ipAddress:    'string'           // The IP address of the remote connection
+  }
+```
 
 ### `.wss`
 
-Client API
-----------
+This is a reference to the internet WebSocketServer.
+
+## Client API
 
 ### `.observable(name)`
 
@@ -137,4 +152,5 @@ that represents when the client will try to make a new connection.
 
 ### `.sessionId`
 
-TODO: Write me
+This is a UUID that is generated once per instance of the client VM. It will stay the same for each connection that is established.
+This is useful for generating "presence" lists of connected clients.
