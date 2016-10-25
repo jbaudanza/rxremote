@@ -2600,6 +2600,10 @@ util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
+v8-natives:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/v8-natives/-/v8-natives-0.0.3.tgz#2b7706dfc6e2e3abf805cdfe9c74fafcdbb630d4"
+
 v8flags@^2.0.10:
   version "2.0.11"
   resolved "https://registry.yarnpkg.com/v8flags/-/v8flags-2.0.11.tgz#bca8f30f0d6d60612cc2c00641e6962d42ae6881"
