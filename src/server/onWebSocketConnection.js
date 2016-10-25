@@ -128,13 +128,18 @@ export default function onWebSocketConnection(socket, observables, connectionId,
           const observable = fn(message.offset, socket, sessionId);
           if (observable && typeof observable.subscribe === 'function') {
             if (typeof observable.subscribe === 'function') {
-              // TODO: If this is an ArrayObservable, just send the array
-              // as one batch.
-              //if (typeof Array.isArray(observable.array)) {
-              //}
+              let batchedResults;
 
-              const subscription = rewrapBatches(observable)
-                .subscribe(createObserver(message.subscriptionId));
+              // If this is an ArrayObservable, just send the array
+              // as one batch.
+              if (Array.isArray(observable.array)) {
+                batchedResults = Rx.Observable.of(observable.array);
+              } else {
+                batchedResults = rewrapBatches(observable);
+              }
+
+              const subscription = batchedResults
+                    .subscribe(createObserver(message.subscriptionId));
 
               subscription.name = message.name;
 

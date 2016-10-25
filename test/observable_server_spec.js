@@ -5,6 +5,7 @@ import Rx from 'rxjs';
 
 import {Server, Client} from '../';
 
+
 function createHttpServer() {
   const httpServer = http.createServer();
   return new Promise(function(resolve, reject) {
@@ -47,8 +48,21 @@ describe('ObservableServer', () => {
         .toPromise()
         .then(
           function(result) { throw new Error('Promise was unexpectedly fulfilled. Result: ' + result) },
-          function(err) { assert.equal("Test error", err); }
+          function(err) { assert.equal(err, "Test error"); }
         )
+    });
+  });
+
+  it('should send an ArrayObservable in one batch', () => {
+    return createClientServerPair().then(function([server, client]) {
+      server.add('test-observable', () => Rx.Observable.of(1,2,3));
+
+      return client.observable('test-observable')
+        .batches()
+        .take(1)
+        .forEach(function(result) {
+          assert.deepEqual(result, [1,2,3])
+        });
     });
   });
 
@@ -72,10 +86,10 @@ describe('ObservableServer', () => {
         .take(3)
         .toPromise()
         .then(function() {
-          assert.deepEqual([1,2,3], results);
+          assert.deepEqual(results, [1,2,3]);
 
           // Cause a disconnection
-          assert.equal(1, server.wss.clients.length);
+          assert.equal(server.wss.clients.length, 1);
           server.wss.clients[0].close();
 
           subject.next(4);
@@ -84,7 +98,7 @@ describe('ObservableServer', () => {
 
           return observable.take(3).toPromise();
         }).then(function() {
-          assert.deepEqual([1,2,3,4,5,6], results);
+          assert.deepEqual(results, [1,2,3,4,5,6]);
         });
 
     });
