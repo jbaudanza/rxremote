@@ -12,6 +12,8 @@ export function unwrapBatches(batched) {
   // Add an version of skip that will keep the batched intact.
   obs.skip = batchSkip;
 
+  obs.map = batchMap;
+
   return obs;
 }
 
@@ -56,4 +58,27 @@ function batchSkip(count) {
   });
 
   return unwrapBatches(filteredBatches);
+}
+
+
+export function batchMap(project, thisArg) {
+  const outerObservable = this;
+
+  const mappedBatches = Rx.Observable.create(function(observer) {
+    let baseIndex = 0;
+
+    const sub = outerObservable.batches().map(function(batch) {
+      const result = batch.map(function(currentValue, index) {
+        return project.call(thisArg, currentValue, baseIndex + index, outerObservable);
+      });
+
+      baseIndex += batch.length;
+
+      return result;
+    }).subscribe(observer);
+
+    return function() { sub.unsubscribe(); }
+  });
+
+  return unwrapBatches(mappedBatches);
 }
