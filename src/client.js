@@ -1,9 +1,8 @@
 import Rx from 'rxjs';
 import uuid from 'node-uuid';
 
-import {unwrapBatches} from  './batches';
-
 const sessionId = uuid.v4();
+
 
 let WebSocketClient;
 if (typeof window === 'object') {
@@ -75,7 +74,7 @@ function openSocket(endpoint, privateState, failures) {
     send({
       type: 'subscribe',
       name: subscriptionInfo.name,
-      offset: subscriptionInfo.offset,
+      cursor: subscriptionInfo.cursor,
       subscriptionId: subscriptionInfo.subscriptionId
     });
   }
@@ -170,9 +169,9 @@ export default class Client {
           case 'complete':
             state.observer.complete();
             break;
-          case 'events':
-            state.offset += message.batch.length;
-            state.observer.next(message.batch);
+          case 'next':
+            state.cursor = message.cursor;
+            state.observer.next(message.value);
             break;
         }
       }
@@ -182,23 +181,19 @@ export default class Client {
   observable(name) {
     const privateState = this.privateState;
 
-    const batches = Rx.Observable.create(function(observer) {
+    return Rx.Observable.create(function(observer) {
       const subscriptionId = privateState.subscriptionCounter;
       privateState.subscriptionCounter++;
 
       privateState.subscribes.next({
         observer: observer,
         name: name,
-        subscriptionId: subscriptionId,
-        offset: 0
+        subscriptionId: subscriptionId
       });
 
       return function() {
         privateState.unsubscribes.next(subscriptionId);
       }
     });
-
-    return unwrapBatches(batches);
   }
-
 }

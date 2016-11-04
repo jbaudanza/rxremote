@@ -1,6 +1,5 @@
 import Rx from 'rxjs';
 
-import {rewrapBatches} from '../batches';
 
 // This is moved out of the main function because the try-catch will stop
 // the V8 optimizer from working.
@@ -10,6 +9,14 @@ function parseJSON(data) {
   } catch(e) {
     console.error(e);
     return null;
+  }
+}
+
+function defaultCursorFn(value, lastCursor) {
+  if (typeof lastCursor === 'undefined') {
+    return 1;
+  } else {
+    return lastCursor + 1;
   }
 }
 
@@ -35,10 +42,11 @@ export default function onWebSocketConnection(socket, observables, connectionId,
     }
   }
 
-  function createObserver(subscriptionId) {
+  function createObserver(subscriptionId, cursorFn) {
     return {
-      next(batch) {
-        send({type: 'events', batch, subscriptionId});
+      next(value) {
+        this.cursor = cursorFn(value, this.cursor);
+        send({type: 'next', cursor: this.cursor, value, subscriptionId});
       },
       error(error) {
         log(error);
@@ -105,11 +113,6 @@ export default function onWebSocketConnection(socket, observables, connectionId,
         break;
 
       case 'subscribe':
-        if (typeof message.offset !== 'number') {
-          log("expected offset number");
-          break;
-        }
-
         if (typeof message.subscriptionId !== 'number') {
           log("expected subscriptionId string");
           break;
@@ -125,26 +128,22 @@ export default function onWebSocketConnection(socket, observables, connectionId,
         log('subscribing to ' + message.name);
 
         if (fn) {
-          const observable = fn(message.offset, socket, sessionId);
+          const observable = fn(message.cursor, socket, sessionId);
           if (observable && typeof observable.subscribe === 'function') {
-            if (typeof observable.subscribe === 'function') {
-              let batchedResults;
-
-              // If this is an ArrayObservable, just send the array
-              // as one batch.
-              if (Array.isArray(observable.array)) {
-                batchedResults = Rx.Observable.of(observable.array);
-              } else {
-                batchedResults = rewrapBatches(observable);
-              }
-
-              const subscription = batchedResults
-                    .subscribe(createObserver(message.subscriptionId));
-
-              subscription.name = message.name;
-
-              subscriptions[message.subscriptionId] = subscription;
+            let cursorFn;
+            if (typeof observable.cursorFn === 'function') {
+              cursorFn = observable.cursorFn;
+            } else {
+              cursorFn = defaultCursorFn;
             }
+
+            const subscription = observable.subscribe(
+                createObserver(message.subscriptionId, cursorFn)
+            );
+
+            subscription.name = message.name;
+
+            subscriptions[message.subscriptionId] = subscription;
           } else {
             console.error(`Expected Rx.Observable instance for key ${message.name}, got: ${observable}`);
             send({
