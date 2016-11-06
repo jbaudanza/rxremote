@@ -21,6 +21,11 @@ function defaultCursorFn(value, lastCursor) {
 }
 
 
+function isObservable(obj) {
+  return typeof obj === 'object' && typeof obj.subscribe === 'function';
+}
+
+
 export default function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {
   const remoteAddr = (
       socket.upgradeReq.headers['x-forwarded-for'] || 
@@ -42,11 +47,10 @@ export default function onWebSocketConnection(socket, observables, connectionId,
     }
   }
 
-  function createObserver(subscriptionId, cursorFn) {
+  function createObserver(subscriptionId, resumable) {
     return {
       next(value) {
-        this.cursor = cursorFn(value, this.cursor);
-        send({type: 'next', cursor: this.cursor, value, subscriptionId});
+        send({type: 'next', value, resumable, subscriptionId});
       },
       error(error) {
         log(error);
@@ -123,29 +127,37 @@ export default function onWebSocketConnection(socket, observables, connectionId,
           break;
         }
 
-        const fn = observables[message.name];
+        const result = observables[message.name];
 
         log('subscribing to ' + message.name);
 
-        if (fn) {
-          const observable = fn(message.cursor, socket, sessionId);
-          if (observable && typeof observable.subscribe === 'function') {
-            let cursorFn;
-            if (typeof observable.cursorFn === 'function') {
-              cursorFn = observable.cursorFn;
+        if (result) {
+          let observable;
+          let resumable;
+
+          // If function, then this is resumable
+          if (typeof result === 'function') {
+            const ret = result(message.cursor, socket, sessionId);
+            if (isObservable(ret)) {
+              observable = ret;
+              resumable = true;
             } else {
-              cursorFn = defaultCursorFn;
+              console.error(`Expected Rx.Observable instance for resumable ${message.name}, got: ${observable}`);
+              send({
+                type: 'error',
+                subscriptionId: message.subscriptionId,
+                error: {
+                  code: '500',
+                  message: 'Internal Server Error'
+                }
+              });
+              break;
             }
-
-            const subscription = observable.subscribe(
-                createObserver(message.subscriptionId, cursorFn)
-            );
-
-            subscription.name = message.name;
-
-            subscriptions[message.subscriptionId] = subscription;
+          } else if (typeof result === 'object' && typeof result.subscribe === 'function') {
+            observable = result;
+            resumable = false;
           } else {
-            console.error(`Expected Rx.Observable instance for key ${message.name}, got: ${observable}`);
+            console.error(`Expected Rx.Observable instance for key ${message.name}, got: ${result}`);
             send({
               type: 'error',
               subscriptionId: message.subscriptionId,
@@ -154,7 +166,16 @@ export default function onWebSocketConnection(socket, observables, connectionId,
                 message: 'Internal Server Error'
               }
             });
+            break;
           }
+
+          const subscription = observable.subscribe(
+            createObserver(message.subscriptionId, resumable)
+          );
+
+          subscription.name = message.name;
+          subscriptions[message.subscriptionId] = subscription;
+
         } else {
           send({
             type: 'error',

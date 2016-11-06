@@ -67,7 +67,11 @@ function openSocket(endpoint, privateState, failures) {
   );
 
   function send(object) {
-    privateState.socket.send(JSON.stringify(object));
+    if (privateState.socket) {
+      privateState.socket.send(JSON.stringify(object));
+    } else {
+      console.error('Attempt to send to null socket: ', object)
+    }
   }
 
   function sendSubscribe(subscriptionInfo) {
@@ -106,6 +110,13 @@ function openSocket(endpoint, privateState, failures) {
   privateState.socket.addEventListener('close', function(event) {
     privateState.socket = null;
     privateState.connectedSubject.next(false);
+
+    Object.keys(privateState.subscriptionState).forEach(function(subId) {
+      if (!privateState.subscriptionState[subId].resumable) {
+        privateState.subscriptionState[subId].observer.error(event);
+        delete privateState.subscriptionState[subId];
+      }
+    });
 
     // This will max out around 4 minutes
     const delay = Math.pow(2, Math.min(failures, 8)) * 1000;
@@ -170,8 +181,15 @@ export default class Client {
             state.observer.complete();
             break;
           case 'next':
-            state.cursor = message.cursor;
-            state.observer.next(message.value);
+            state.resumable = message.resumable;
+
+            if (message.resumable) {
+              state.cursor = message.value.cursor;
+              state.observer.next(message.value.value);
+            } else {
+              state.observer.next(message.value);
+            }
+
             break;
         }
       }
@@ -188,6 +206,9 @@ export default class Client {
       privateState.subscribes.next({
         observer: observer,
         name: name,
+        // Observerables start as resumable, unless the server tells us
+        // otherwise
+        resumable: true,
         subscriptionId: subscriptionId
       });
 
