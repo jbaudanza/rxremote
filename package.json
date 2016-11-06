@@ -39,7 +39,7 @@
   "dependencies": {
     "babel-polyfill": "^6.9.1",
     "node-uuid": "^1.4.7",
-    "rxjs": "^5.0.0-rc.1",
+    "rxjs": "5.0.0-rc.2",
     "ws": "^1.1.1"
   }
 }
