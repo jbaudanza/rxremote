@@ -56,6 +56,23 @@ describe('ObservableServer', () => {
     });
   });
 
+  it('should pass the socket and sessionId into the resumable function', () => {
+    return createClientServerPair().then(function([server, client]) {
+      server.add('test-observable',
+        (cursor, socket, sessionId) => Rx.Observable.of(
+          socket.upgradeReq.connection.remoteAddress
+        )
+      );
+
+      return client.observable('test-observable')
+        .take(1)
+        .toPromise()
+        .then((result) => {
+          assert.equal(result, '127.0.0.1');
+        });
+    });
+  });
+
   it('should emit a disconnect error for non-resumable observables', () => {
     return createClientServerPair().then(function([server, client]) {
       const subject = new Rx.ReplaySubject(4);
@@ -149,7 +166,7 @@ function resumable(resumeFn, cursorFn, initialCursor) {
 }
 
 function resumeFromCursor(resumeFn, cursorFn, initialCursor, resumeCursor) {
-  return Rx.Observable.create(function(observer) {
+  const obs = Rx.Observable.create(function(observer) {
     let cursor;
     if (typeof resumeCursor === 'undefined') {
       cursor = initialCursor;
@@ -170,4 +187,8 @@ function resumeFromCursor(resumeFn, cursorFn, initialCursor, resumeCursor) {
       complete: observer.complete.bind(observer)
     });
   });
+
+  obs.resumable = true;
+
+  return obs;
 }

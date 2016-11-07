@@ -133,16 +133,14 @@ export default function onWebSocketConnection(socket, observables, connectionId,
 
         if (result) {
           let observable;
-          let resumable;
 
           // If function, then this is resumable
           if (typeof result === 'function') {
             const ret = result(message.cursor, socket, sessionId);
             if (isObservable(ret)) {
               observable = ret;
-              resumable = true;
             } else {
-              console.error(`Expected Rx.Observable instance for resumable ${message.name}, got: ${observable}`);
+              console.error(`Expected function to return an Rx.Observable instance ${message.name}, got: ${observable}`);
               send({
                 type: 'error',
                 subscriptionId: message.subscriptionId,
@@ -155,7 +153,6 @@ export default function onWebSocketConnection(socket, observables, connectionId,
             }
           } else if (typeof result === 'object' && typeof result.subscribe === 'function') {
             observable = result;
-            resumable = false;
           } else {
             console.error(`Expected Rx.Observable instance for key ${message.name}, got: ${result}`);
             send({
@@ -170,7 +167,7 @@ export default function onWebSocketConnection(socket, observables, connectionId,
           }
 
           const subscription = observable.subscribe(
-            createObserver(message.subscriptionId, resumable)
+            createObserver(message.subscriptionId, !!observable.resumable)
           );
 
           subscription.name = message.name;
