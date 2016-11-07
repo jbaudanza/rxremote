@@ -69,8 +69,6 @@ function openSocket(endpoint, privateState, failures) {
   function send(object) {
     if (privateState.socket) {
       privateState.socket.send(JSON.stringify(object));
-    } else {
-      console.error('Attempt to send to null socket: ', object)
     }
   }
 
