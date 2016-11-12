@@ -179,12 +179,13 @@ export default class Client {
             state.observer.complete();
             break;
           case 'next':
-            state.resumable = message.resumable;
-
-            if (message.resumable) {
+            if (typeof message.value === 'object' && 'cursor' in message.value) {
+              state.resumable = true;
               state.cursor = message.value.cursor;
               state.observer.next(message.value.value);
             } else {
+              state.cursor = null;
+              state.resumable = false;
               state.observer.next(message.value);
             }
 

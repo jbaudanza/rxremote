@@ -36,7 +36,5 @@ export function resumeFromCursor(resumeFn, cursorFn, initialCursor, resumeCursor
     });
   });
 
-  obs.resumable = true;
-
   return obs;
 }

@@ -47,10 +47,10 @@ export default function onWebSocketConnection(socket, observables, connectionId,
     }
   }
 
-  function createObserver(subscriptionId, resumable) {
+  function createObserver(subscriptionId) {
     return {
       next(value) {
-        send({type: 'next', value, resumable, subscriptionId});
+        send({type: 'next', value, subscriptionId});
       },
       error(error) {
         log(error);
@@ -167,7 +167,7 @@ export default function onWebSocketConnection(socket, observables, connectionId,
           }
 
           const subscription = observable.subscribe(
-            createObserver(message.subscriptionId, !!observable.resumable)
+            createObserver(message.subscriptionId)
           );
 
           subscription.name = message.name;
