@@ -130,6 +130,11 @@ function openSocket(endpoint, privateState, failures) {
 
 export default class Client {
   constructor(endpoint) {
+    if (typeof endpoint === 'undefined' && typeof window === 'object') {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      endpoint = `${protocol}//${window.location.host}`;
+    }
+
     const privateState = {
       incomingMessages: new Rx.Subject(),
       connectedSubject: new Rx.BehaviorSubject(false),
