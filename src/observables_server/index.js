@@ -4,7 +4,7 @@ import Rx from 'rxjs';
 import onWebSocketConnection from './onWebSocketConnection';
 
 
-export default class Server {
+export default class ObservablesServer {
   constructor(httpServer, routeTable={}) {
     this.routeTable = routeTable;
 

@@ -18,7 +18,7 @@ server:
 
 ```js
 import http from 'http';
-import ObservablesServer from 'rxremote/server';
+import ObservablesServer from 'rxremote/observables_server';
 
 const httpServer = http.createServer();
 httpServer.listen(5000);
@@ -33,7 +33,7 @@ const observablesServer = new ObservablesServer(httpServer, {
 client:
 
 ```js
-import ObservablesClient from 'rxremote/client';
+import ObservablesClient from 'rxremote/observables_client';
 
 const client = new ObservablesClient('ws://localhost:5000');
 const source = client.observable('counter')
@@ -58,17 +58,33 @@ const subscription = source.subscribe(
 
 ## Continuing a subscription after reconnection
 
+Usually when a disconnection event happens, an error will be emitted on all open
+observables and it will be up to the client application to resubscribe.
+
+You can have the `ObservableClient` handle this resubscription transparently
+by structuring your observable to emit objects that look like:
+
+```
+{
+  cursor: 1      // Some value that can be used to resume your observable
+  value: 'hello' // The main value object that you are observing
+}
+```
+
+A `cursor` can be any number, string or JSON-serializable object that your
+observable can use to resume where it left off.
+
+For example:
+
 server:
+
 ```js
 const observablesServer = new ObservablesServer(httpServer, {
-  /*
-    When a reconnection occurs, an `offset` parameter will be passed to the
-    handler which indicates how many events have been previously consumed by
-    the client. Depending on the nature of the Observable, you might handle this
-    in different ways.
-  */
-  counter(offset) {
-    return Rx.Observable.interval(1000).map(x => offset + x);
+  counter(cursor) {
+    return Rx.Observable.interval(1000).map(x => ({
+      cursor: x,
+      value: cursor + x
+    }));
   }
 });
 ```
@@ -101,10 +117,6 @@ const subscription = source.subscribe(
 
 ```
 
-## Batching results
-
-COMING SOON: RxRemote contains an internal API for batching results together for efficiency. If there is interest, I
-will polish this up and publish this.
 
 ## Server API
 
