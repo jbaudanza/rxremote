@@ -3,8 +3,9 @@ import http from 'http';
 
 import Rx from 'rxjs';
 
-import {Server, Client} from '../';
+import {ObservablesServer, ObservablesClient} from '../';
 import {resumableWithOffset} from '../resumable';
+
 
 function createHttpServer() {
   const httpServer = http.createServer();
@@ -19,10 +20,10 @@ function wait(ms) {
 
 function createClientServerPair() {
   return createHttpServer().then(function(httpServer) {
-    const observablesServer = new Server(httpServer);
+    const observablesServer = new ObservablesServer(httpServer);
     const addr = httpServer.address();
     const endpoint = `ws://${addr.address}:${addr.port}`;
-    const observablesClient = new Client(endpoint);
+    const observablesClient = new ObservablesClient(endpoint);
     //observablesServer.log.subscribe(x => console.log(x))
 
     return [observablesServer, observablesClient];

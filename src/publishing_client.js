@@ -16,8 +16,6 @@ export default class PublishingClient {
       value: value
     };
 
-    const url = this.host + '/events';
-
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -26,7 +24,7 @@ export default class PublishingClient {
       headers['Authorization'] = "Bearer " + token;
     }
 
-    return fetch(url, {
+    return fetch(this.host + '/events', {
       method: 'POST',
       credentials: 'include',
       body: JSON.stringify(body),
