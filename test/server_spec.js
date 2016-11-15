@@ -3,7 +3,8 @@ import assert from 'assert';
 import Rx from 'rxjs';
 import EventEmitter from 'events';
 
-import onWebSocketConnection from '../lib/server/onWebSocketConnection';
+import onWebSocketConnection from '../lib/observables_server/onWebSocketConnection';
+
 
 describe('server', () => {
   it('should optimize the connection handler', () => {
@@ -47,6 +48,8 @@ describe('server', () => {
     v8.optimizeFunctionOnNextCall(onWebSocketConnection);
     doCall();
 
+    // 1 - optimized
+    // 2 - not-optimized
     assert.equal(1, v8.getOptimizationStatus(onWebSocketConnection));
   });
 });

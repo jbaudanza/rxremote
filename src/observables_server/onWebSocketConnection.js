@@ -29,15 +29,19 @@ function isObservable(obj) {
 export default function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {
   const remoteAddr = (
       socket.upgradeReq.headers['x-forwarded-for'] || 
-      socket.upgradeReq.connection.remoteAddress
+      String(socket.upgradeReq.connection.remoteAddress)
   );
 
-  let sessionId = null;
 
   function log(message) {
-    const str = `[${remoteAddr}] ${message}`;
-    logSubject.next(str);
+    logSubject.next(`[${remoteAddr}] ${message}`);
   }
+
+  // For some reason, calling log() breaks the v8 optimizer, so we call the
+  // logSubject directly.
+  logSubject.next(`[${remoteAddr}] WebSocket connection opened`);
+
+  let sessionId = null;
 
   function send(object) {
     if (socket.readyState === 1) { // OPEN
@@ -71,8 +75,6 @@ export default function onWebSocketConnection(socket, observables, connectionId,
 
     eventSubject.next([event, meta]);
   }
-
-  log("WebSocket connection opened");
 
   let subscriptions = {};
 
