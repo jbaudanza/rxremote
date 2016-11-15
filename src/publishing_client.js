@@ -18,31 +18,19 @@ export default class PublishingClient {
 
     const url = this.host + '/events';
 
-    return this.fetchCsrfToken().then(function(csrf) {
-      const headers = {
-        'Content-Type': 'application/json',
-        'csrf-token': csrf
-      };
+    const headers = {
+      'Content-Type': 'application/json',
+    };
 
-      if (token) {
-        headers['Authorization'] = "Bearer " + token;
-      }
-
-      return fetch(url, {
-        method: 'POST',
-        credentials: 'include',
-        body: JSON.stringify(body),
-        headers: headers
-      }).then(r => r.json())
-    });
-  }
-
-  fetchCsrfToken() {
-    if (!this.csrfPromise) {
-      this.csrfPromise = fetch(this.host + '/csrf', {credentials: 'include'})
-          .then(r => r.json())
-          .then((response) => response.csrf);
+    if (token) {
+      headers['Authorization'] = "Bearer " + token;
     }
-    return this.csrfPromise;
+
+    return fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      body: JSON.stringify(body),
+      headers: headers
+    }).then(r => r.json());
   }
 }

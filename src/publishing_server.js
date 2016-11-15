@@ -1,7 +1,5 @@
 import express from 'express';
-import csurf from 'csurf';
 import jwt from 'jsonwebtoken';
-import cookieParser from 'cookie-parser';
 
 
 export default function PublishingServer(handlers, secret) {
@@ -12,18 +10,9 @@ export default function PublishingServer(handlers, secret) {
     next();
   })
 
-  router.use(cookieParser(secret));
-  router.use(csurf({cookie: true}));
-
   router.post('/events', postEvent.bind(null, handlers));
-  router.get('/csrf', getCsrf);
 
   return router;
-}
-
-
-function getCsrf(req, res) {
-  res.json({csrf: req.csrfToken()});
 }
 
 
