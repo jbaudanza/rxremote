@@ -1,7 +1,7 @@
 import Rx from 'rxjs';
 import uuid from 'node-uuid';
 
-const sessionId = uuid.v4();
+import sessionId from './session_id';
 
 
 let WebSocketClient;
