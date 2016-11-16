@@ -90,7 +90,7 @@ export default function onWebSocketConnection(socket, observables, connectionId,
 
     subscriptions = {};
 
-    insertEvent({type: 'connection-closed'});
+    insertEvent('connection-closed');
   };
 
   socket.on('message', function(data) {
@@ -114,7 +114,7 @@ export default function onWebSocketConnection(socket, observables, connectionId,
           break;
         }
         sessionId = message.sessionId;
-        insertEvent({type: 'connection-open'});
+        insertEvent('connection-open');
         log("open session " + message.sessionId);
         break;
 
