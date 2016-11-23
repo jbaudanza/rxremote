@@ -1,5 +1,5 @@
 import Rx from 'rxjs';
-import uuid from 'node-uuid';
+import uuid from 'uuid';
 
 import sessionId from './session_id';
 
