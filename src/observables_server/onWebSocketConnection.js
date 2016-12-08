@@ -136,7 +136,6 @@ export default function onWebSocketConnection(socket, observables, connectionId,
         if (result) {
           let observable;
 
-          // If function, then this is resumable
           if (typeof result === 'function') {
             const ret = result(message.cursor, socket, sessionId);
             if (isObservable(ret)) {
