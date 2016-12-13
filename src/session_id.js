@@ -1,2 +1,2 @@
-import uuid from 'uuid';
-export default uuid.v4();
+import uuid from 'uuid/v4';
+export default uuid();
