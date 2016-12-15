@@ -25,13 +25,15 @@ function isObservable(obj) {
   return typeof obj === 'object' && typeof obj.subscribe === 'function';
 }
 
+function addressForSocket(socket) {
+  return Array((
+    socket.upgradeReq.headers['x-forwarded-for'] ||
+    socket.upgradeReq.connection.remoteAddress
+  ).split(','))[0];
+}
 
 export default function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {
-  const remoteAddr = (
-      socket.upgradeReq.headers['x-forwarded-for'] || 
-      String(socket.upgradeReq.connection.remoteAddress)
-  );
-
+  const remoteAddr = addressForSocket(socket);
 
   function log(message) {
     logSubject.next(`[${remoteAddr}] ${message}`);

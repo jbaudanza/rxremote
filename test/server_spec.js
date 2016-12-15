@@ -17,7 +17,7 @@ describe('server', () => {
     socket.upgradeReq = {
       headers: {},
       connection: {
-        remoteAdddress: '127.0.0.1'
+        remoteAddress: '127.0.0.1'
       }
     };
 
