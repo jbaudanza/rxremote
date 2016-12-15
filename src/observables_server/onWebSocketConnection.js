@@ -26,10 +26,10 @@ function isObservable(obj) {
 }
 
 function addressForSocket(socket) {
-  return Array((
+  return (
     socket.upgradeReq.headers['x-forwarded-for'] ||
     socket.upgradeReq.connection.remoteAddress
-  ).split(','))[0];
+  ).split(',').shift();
 }
 
 export default function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {
