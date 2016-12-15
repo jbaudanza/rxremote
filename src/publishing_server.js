@@ -78,7 +78,7 @@ function postEvent(handlers, req, res, next) {
     const meta = {
       actor: actor,
       sessionId: sessionId,
-      ipAddress: req.ip
+      ipAddress: req.ip.split(',')[0]
     };
 
     handlers[body.key](body.value, meta).then(function(response) {
