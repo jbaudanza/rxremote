@@ -7,6 +7,30 @@ import {ObservablesServer, ObservablesClient} from '../';
 import {resumableWithOffset} from '../resumable';
 
 
+const WebSocketClient = require('ws');
+
+// This was copied from https://github.com/websockets/ws/pull/805/files.
+// If this PR ever gets accepted, we can remove this.
+WebSocketClient.prototype.removeEventListener = function(method, listener) {
+  var listeners = this.listeners(method);
+  for (var i = 0; i < listeners.length; i++) {
+    if (listeners[i]._listener === listener) {
+      this.removeListener(method, listeners[i]);
+    }
+  }
+};
+
+WebSocketClient.prototype.hasEventListener = function(method, listener) {
+  var listeners = this.listeners(method);
+  for (var i = 0; i < listeners.length; i++) {
+    if (listeners[i]._listener === listener) {
+      return true;
+    }
+  }
+  return false;
+};
+
+
 function createHttpServer() {
   const httpServer = http.createServer();
   return new Promise(function(resolve, reject) {
@@ -23,7 +47,7 @@ function createClientServerPair() {
     const observablesServer = new ObservablesServer(httpServer);
     const addr = httpServer.address();
     const endpoint = `ws://${addr.address}:${addr.port}`;
-    const observablesClient = new ObservablesClient(endpoint);
+    const observablesClient = new ObservablesClient(endpoint, WebSocketClient);
     //observablesServer.log.subscribe(x => console.log(x))
 
     return [observablesServer, observablesClient];

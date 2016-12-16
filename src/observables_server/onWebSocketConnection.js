@@ -29,7 +29,7 @@ function addressForSocket(socket) {
   return (
     socket.upgradeReq.headers['x-forwarded-for'] ||
     socket.upgradeReq.connection.remoteAddress
-  ).split(',').shift();
+  ).split(',').shift(); // TODO: This shift() is breaking the V8 compilation
 }
 
 export default function onWebSocketConnection(socket, observables, connectionId, logSubject, eventSubject) {

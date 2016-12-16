@@ -4,35 +4,6 @@ import uuid from 'uuid';
 import sessionId from './session_id';
 
 
-let WebSocketClient;
-if (typeof window === 'object') {
-  WebSocketClient = window.WebSocket;
-} else {
-  WebSocketClient = require('ws');
-
-  // This was copied from https://github.com/websockets/ws/pull/805/files.
-  // If this PR ever gets accepted, we can remove this.
-  WebSocketClient.prototype.removeEventListener = function(method, listener) {
-    var listeners = this.listeners(method);
-    for (var i = 0; i < listeners.length; i++) {
-      if (listeners[i]._listener === listener) {
-        this.removeListener(method, listeners[i]);
-      }
-    }
-  };
-  
-  WebSocketClient.prototype.hasEventListener = function(method, listener) {
-    var listeners = this.listeners(method);
-    for (var i = 0; i < listeners.length; i++) {
-      if (listeners[i]._listener === listener) {
-        return true;
-      }
-    }
-    return false;
-  };
-}
-
-
 function isOnline() {
   if ('onLine' in navigator)
     return navigator.onLine;
@@ -45,7 +16,7 @@ function isOffline() {
 }
 
 
-function openSocket(endpoint, privateState, failures) {
+function openSocket(WebSocketConstructor, endpoint, privateState, failures) {
   // Don't open two WebSockets at once.
   if (privateState.socket)
     return;
@@ -56,7 +27,7 @@ function openSocket(endpoint, privateState, failures) {
   }
 
 
-  privateState.socket = new WebSocketClient(endpoint);
+  privateState.socket = new WebSocketConstructor(endpoint);
   const cleanup = [];
 
   const messageStream = Rx.Observable.fromEvent(privateState.socket, 'message')
@@ -119,7 +90,7 @@ function openSocket(endpoint, privateState, failures) {
     // This will max out around 4 minutes
     const delay = Math.pow(2, Math.min(failures, 8)) * 1000;
     privateState.reconnectTimerId = setTimeout(
-      () => openSocket(endpoint, privateState, failures+1), delay
+      () => openSocket(WebSocketConstructor, endpoint, privateState, failures+1), delay
     );
     privateState.reconnectingAtSubject.next(Date.now() + delay);
 
@@ -129,10 +100,14 @@ function openSocket(endpoint, privateState, failures) {
 
 
 export default class ObservablesClient {
-  constructor(endpoint) {
+  constructor(endpoint, WebSocketConstructor) {
     if (typeof endpoint === 'undefined' && typeof window === 'object') {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       endpoint = `${protocol}//${window.location.host}`;
+    }
+
+    if (typeof WebSocketConstructor === 'undefined' && typeof window === 'object') {
+      WebSocketConstructor = window.WebSocket;
     }
 
     const privateState = {
@@ -153,7 +128,7 @@ export default class ObservablesClient {
     this.sessionId = sessionId;
 
     this.reconnect = function() {
-      openSocket(endpoint, privateState, 0);
+      openSocket(WebSocketConstructor, endpoint, privateState, 0);
     }
 
     if (typeof window === 'object') {
