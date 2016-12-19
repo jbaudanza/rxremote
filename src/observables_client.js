@@ -17,6 +17,8 @@ function isOffline() {
 
 
 function openSocket(WebSocketConstructor, endpoint, privateState, failures) {
+  privateState.connectionStateSubject.next('connecting');
+
   // Don't open two WebSockets at once.
   if (privateState.socket)
     return;
@@ -72,13 +74,13 @@ function openSocket(WebSocketConstructor, endpoint, privateState, failures) {
     cleanup.push(privateState.unsubscribes.subscribe(sendUnsubscribe));
 
     failures = 0;
-    privateState.connectedSubject.next(true);
+    privateState.connectionStateSubject.next('connected');
     privateState.reconnectingAtSubject.next(null);
   });
 
   privateState.socket.addEventListener('close', function(event) {
     privateState.socket = null;
-    privateState.connectedSubject.next(false);
+    privateState.connectionStateSubject.next('disconnected');
 
     Object.keys(privateState.subscriptionState).forEach(function(subId) {
       if (!privateState.subscriptionState[subId].resumable) {
@@ -112,7 +114,7 @@ export default class ObservablesClient {
 
     const privateState = {
       incomingMessages: new Rx.Subject(),
-      connectedSubject: new Rx.BehaviorSubject(false),
+      connectionStateSubject: new Rx.BehaviorSubject('disconnected'),
       reconnectingAtSubject: new Rx.BehaviorSubject(null),
       subscriptionState: {},
       subscribes: new Rx.Subject(),
@@ -123,7 +125,8 @@ export default class ObservablesClient {
     }
 
     this.privateState = privateState;
-    this.connected = privateState.connectedSubject.asObservable();
+    this.connected = privateState.connectionStateSubject.map(x => x === 'connected')
+    this.connectionState = privateState.connectionStateSubject.asObservable();
     this.reconnectingAt = privateState.reconnectingAtSubject.asObservable();
     this.sessionId = sessionId;
 
