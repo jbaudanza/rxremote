@@ -1,6 +1,9 @@
-import Rx from 'rxjs';
-import uuid from 'uuid';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/fromEvent';
+import {Subject} from 'rxjs/Subject';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
+import uuid from 'uuid';
 import sessionId from './session_id';
 
 
@@ -32,7 +35,7 @@ function openSocket(WebSocketConstructor, endpoint, privateState, failures) {
   privateState.socket = new WebSocketConstructor(endpoint);
   const cleanup = [];
 
-  const messageStream = Rx.Observable.fromEvent(privateState.socket, 'message')
+  const messageStream = Observable.fromEvent(privateState.socket, 'message')
       .map(e => JSON.parse(e.data));
 
   cleanup.push(
@@ -113,12 +116,12 @@ export default class ObservablesClient {
     }
 
     const privateState = {
-      incomingMessages: new Rx.Subject(),
-      connectionStateSubject: new Rx.BehaviorSubject('disconnected'),
-      reconnectingAtSubject: new Rx.BehaviorSubject(null),
+      incomingMessages: new Subject(),
+      connectionStateSubject: new BehaviorSubject('disconnected'),
+      reconnectingAtSubject: new BehaviorSubject(null),
       subscriptionState: {},
-      subscribes: new Rx.Subject(),
-      unsubscribes: new Rx.Subject(),
+      subscribes: new Subject(),
+      unsubscribes: new Subject(),
       subscriptionCounter: 0,
       reconnectTimerId: null,
       socket: null
@@ -181,7 +184,7 @@ export default class ObservablesClient {
   observable(name) {
     const privateState = this.privateState;
 
-    return Rx.Observable.create(function(observer) {
+    return Observable.create(function(observer) {
       const subscriptionId = privateState.subscriptionCounter;
       privateState.subscriptionCounter++;
 

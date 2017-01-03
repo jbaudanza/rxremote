@@ -1,6 +1,3 @@
-import Rx from 'rxjs';
-
-
 // This is moved out of the main function because the try-catch will stop
 // the V8 optimizer from working.
 function parseJSON(data) {
