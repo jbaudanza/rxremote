@@ -68,6 +68,20 @@ describe('ObservableServer', () => {
     });
   });
 
+  it('should pass parameters from the client to the server', () => {
+    return createClientServerPair().then(function([server, client]) {
+      server.add('test-observable', (cursor, params, socket) => (
+        Rx.Observable.of(params.foo)
+      ));
+
+      return client.observable('test-observable', {foo: 'bar'})
+          .take(1)
+          .toPromise().then(function(result) {
+            assert.equal(result, 'bar');
+          });
+    });
+  });
+
   it('should propogate errors to the client', () => {
     return createClientServerPair().then(function([server, client]) {
       server.add('test-observable', Rx.Observable.throw('Test error'));
@@ -84,7 +98,7 @@ describe('ObservableServer', () => {
   it('should pass the socket and sessionId into the resumable function', () => {
     return createClientServerPair().then(function([server, client]) {
       server.add('test-observable',
-        (cursor, socket, sessionId) => Rx.Observable.of(
+        (cursor, params, socket, sessionId) => Rx.Observable.of(
           socket.upgradeReq.connection.remoteAddress
         )
       );

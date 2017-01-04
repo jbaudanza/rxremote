@@ -52,6 +52,7 @@ function openSocket(WebSocketConstructor, endpoint, privateState, failures) {
     send({
       type: 'subscribe',
       name: subscriptionInfo.name,
+      params: subscriptionInfo.params,
       cursor: subscriptionInfo.cursor,
       subscriptionId: subscriptionInfo.subscriptionId
     });
@@ -181,7 +182,7 @@ export default class ObservablesClient {
     }
   }
 
-  observable(name) {
+  observable(name, params) {
     const privateState = this.privateState;
 
     return Observable.create(function(observer) {
@@ -191,6 +192,7 @@ export default class ObservablesClient {
       privateState.subscribes.next({
         observer: observer,
         name: name,
+        params: params,
         // Observerables start as resumable, unless the server tells us
         // otherwise
         resumable: true,

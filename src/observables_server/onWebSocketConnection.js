@@ -136,7 +136,7 @@ export default function onWebSocketConnection(socket, observables, connectionId,
           let observable;
 
           if (typeof result === 'function') {
-            const ret = result(message.cursor, socket, sessionId);
+            const ret = result(message.cursor, message.params, socket, sessionId);
             if (isObservable(ret)) {
               observable = ret;
             } else {
