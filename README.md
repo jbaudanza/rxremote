@@ -139,7 +139,7 @@ This observable emits an event object when a connection is open or closed. The o
 
 ### `.wss`
 
-This is a reference to the internet WebSocketServer.
+This is a reference to the internal WebSocketServer.
 
 ## Client API
 
