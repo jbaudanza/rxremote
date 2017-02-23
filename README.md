@@ -1,16 +1,19 @@
-RXRemote
+RxRemote
 ========
 
 RXRemote is a module that allows a client to subscribe to RxJs Observables on a
 remote server. Clients can be either node or browser instances.
 
-On disconnect, RXRemote will attempt to reconnect and restart observables where they left off.
+On disconnect, RxRemote will attempt to reconnect and restart observables where they left off.
 
 ## Installing with [NPM](https://www.npmjs.com/)
 
 ```bash`
 $ npm install rxremote
 ```
+## Why RxRemote?
+
+RxRemote provides functionality that is similar to a [WebSocketSubject](https://github.com/ReactiveX/rxjs/blob/master/src/observable/dom/WebSocketSubject.ts). However, RxRemote adds the concept of cursors to your Observables. This allows RxRemote to handle reconnections transparently to the client application.
 
 ## Simple example
 
@@ -166,3 +169,10 @@ that represents when the client will try to make a new connection.
 
 This is a UUID that is generated once per instance of the client VM. It will stay the same for each connection that is established.
 This is useful for generating "presence" lists of connected clients.
+
+## Related
+
+If you're building an RxJs based application in node, you might find these other modules handy:
+
+  - [rxnotifier](https://github.com/jbaudanza/rxnotifier) - Notification channels backed by redis and/or PostgreSQL
+  - [rxeventstore](https://github.com/jbaudanza/rxeventstore) - Persist and query your data using the Event Sourcing pattern
