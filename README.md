@@ -8,7 +8,7 @@ On disconnect, RxRemote will attempt to reconnect and restart observables where 
 
 ## Installing with [NPM](https://www.npmjs.com/)
 
-```bash`
+```bash
 $ npm install rxremote
 ```
 ## Why RxRemote?
